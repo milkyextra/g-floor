@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>G-Floor | CNC Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="manifest" href="manifest.json">
+    <style>
+      :root {
+         --bg-base: #131517;
+         --bg-panel: #1e2025;
+         --bg-card: #272a30;
+         --bg-card-hover: #2f333a;
+         --text-main: #f1f3f5;
+         --text-muted: #9ba1a6;
+         --accent: #FF6B35;
+         --accent-hover: #ff8555;
+         --accent-subtle: rgba(255, 107, 53, 0.15);
+         --error: #ff4d4d;
+         --border: #3b3f46;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+          font-family: 'Inter', sans-serif;
+          background-color: var(--bg-base);
+          color: var(--text-main);
+          display: flex;
+          height: 100vh;
+          overflow: hidden;
+      }
+      
+      .app-layout {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          height: 100%;
+      }
+      @media (min-width: 768px) {
+          .app-layout { flex-direction: row; }
+      }
+      
+      /* Sidebar / Nav */
+      .nav-rail {
+          background-color: var(--bg-panel);
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          width: 250px;
+          flex-shrink: 0;
+          z-index: 10;
+          transition: width 0.3s ease;
+      }
+      @media (min-width: 1024px) {
+          .nav-rail { width: 280px; }
+      }
+      @media (max-width: 767px) {
+          .nav-rail {
+              width: 100%;
+              height: 70px;
+              border-right: none;
+              border-top: 1px solid var(--border);
+              flex-direction: row;
+              order: 3;
+              justify-content: space-around;
+              align-items: center;
+              padding: 0;
+          }
+      }
+      .nav-header {
+          padding: 24px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-weight: 700;
+          font-size: 1.3rem;
+          color: var(--text-main);
+          border-bottom: 1px solid var(--border);
+          letter-spacing: -0.02em;
+      }
+      .nav-header i { color: var(--accent); }
+      @media (max-width: 767px) {
+          .nav-header { display: none; }
+      }
+      .nav-items {
+          display: flex;
+          flex-direction: column;
+          padding: 16px 12px;
+          gap: 8px;
+          flex: 1;
+      }
+      @media (max-width: 767px) {
+          .nav-items {
+              flex-direction: row;
+              padding: 0;
+              width: 100%;
+              justify-content: space-around;
+          }
+      }
+      .nav-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 16px;
+          border-radius: 8px;
+          color: var(--text-muted);
+          text-decoration: none;
+          font-weight: 500;
+          transition: all 0.2s ease;
+          cursor: pointer;
+      }
+      .nav-item:hover {
+          background-color: var(--bg-card-hover);
+          color: var(--text-main);
+      }
+      .nav-item.active {
+          background-color: var(--accent-subtle);
+          color: var(--accent);
+      }
+      @media (max-width: 767px) {
+          .nav-item {
+              flex-direction: column;
+              gap: 6px;
+              padding: 8px;
+              font-size: 0.7rem;
+              text-align: center;
+              background: transparent !important;
+          }
+          .nav-item.active { color: var(--accent); }
+      }
+      
+      .coming-soon-badge {
+          font-size: 0.65rem;
+          background-color: var(--bg-card);
+          color: var(--text-muted);
+          padding: 4px 6px;
+          border-radius: 4px;
+          margin-left: auto;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+      }
+      @media (max-width: 767px) { .coming-soon-badge { display: none; } }
+
+      /* Main content */
+      .main-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          background-color: var(--bg-base);
+          position: relative;
+      }
+      
+      /* Top Header */
+      .top-header {
+          height: 70px;
+          background-color: var(--bg-panel);
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 24px;
+          position: sticky;
+          top: 0;
+          z-index: 5;
+      }
+      @media (max-width: 767px) {
+          .top-header {
+              padding: 0 16px;
+          }
+      }
+      .mobile-logo {
+          display: none;
+          font-weight: 700;
+          font-size: 1.2rem;
+          color: var(--text-main);
+          align-items: center;
+          gap: 8px;
+      }
+      .mobile-logo i { color: var(--accent); }
+      @media (max-width: 767px) {
+          .mobile-logo { display: flex; }
+      }
+      
+      /* Haas/Fanuc Toggle */
+      .control-switch {
+          display: inline-flex;
+          background-color: var(--bg-card);
+          border-radius: 20px;
+          padding: 4px;
+          position: relative;
+          border: 1px solid var(--border);
+          cursor: pointer;
+          min-height: 40px;
+          align-items: center;
+      }
+      .switch-pill {
+          position: absolute;
+          width: calc(50% - 4px);
+          height: calc(100% - 8px);
+          background-color: var(--accent);
+          border-radius: 16px;
+          top: 4px;
+          left: 4px;
+          transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .control-switch[data-mode="Fanuc"] .switch-pill {
+          transform: translateX(100%);
+      }
+      .switch-label {
+          padding: 0 16px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: var(--text-muted);
+          position: relative;
+          z-index: 1;
+          transition: color 0.3s;
+          user-select: none;
+          text-align: center;
+          min-width: 80px;
+      }
+      .control-switch[data-mode="Haas"] .switch-label:first-of-type { color: #fff; }
+      .control-switch[data-mode="Fanuc"] .switch-label:last-of-type { color: #fff; }
+
+      /* Dashboard Layout */
+      .dashboard {
+          padding: 24px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+          max-width: 1400px;
+          margin: 0 auto;
+          width: 100%;
+          animation: slideUpFade 0.5s ease-out;
+      }
+      @media (min-width: 1024px) {
+          .dashboard {
+              grid-template-columns: minmax(400px, 1.2fr) minmax(300px, 1fr);
+          }
+      }
+      @media (min-width: 1440px) {
+          .dashboard {
+              grid-template-columns: minmax(500px, 1.5fr) minmax(400px, 1fr);
+          }
+      }
+      @keyframes slideUpFade {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Neumorphic Cards */
+      .card {
+          background-color: var(--bg-panel);
+          border-radius: 16px;
+          border: 1px solid var(--border);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      }
+      .card-header {
+          padding: 16px 20px;
+          border-bottom: 1px solid var(--border);
+          background-color: rgba(0,0,0,0.15);
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 1rem;
+      }
+      .card-header i {
+          color: var(--accent);
+          width: 20px;
+      }
+      .card-body {
+          padding: 24px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+      }
+      .grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+      }
+      @media (max-width: 600px) {
+          .grid-2 { grid-template-columns: 1fr; }
+      }
+
+      /* Form Controls */
+      .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+      }
+      .form-group label {
+          font-size: 0.85rem;
+          color: var(--text-muted);
+          font-weight: 600;
+          letter-spacing: 0.02em;
+      }
+      .form-group input {
+          background-color: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-main);
+          padding: 14px 16px;
+          border-radius: 8px;
+          font-family: 'Inter', sans-serif;
+          font-size: 1.05rem;
+          font-weight: 500;
+          min-height: 48px;
+          transition: all 0.2s;
+          width: 100%;
+          box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .form-group input:focus {
+          outline: none;
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-subtle), inset 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .form-group input.error {
+          border-color: var(--error);
+          background-color: rgba(255, 77, 77, 0.05);
+      }
+      .error-text {
+          color: var(--error);
+          font-size: 0.75rem;
+          font-weight: 500;
+          display: none;
+          margin-top: -4px;
+      }
+      .form-group input.error + .error-text {
+          display: block;
+      }
+      
+      /* Modern Checkbox */
+      .checkbox-row {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 18px;
+          background-color: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          cursor: pointer;
+          min-height: 48px;
+          user-select: none;
+          transition: all 0.2s;
+      }
+      .checkbox-row:hover {
+          background-color: var(--bg-card-hover);
+      }
+      .checkbox-container {
+          position: relative;
+          display: inline-block;
+          width: 22px;
+          height: 22px;
+      }
+      .checkbox-container input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+          position: absolute;
+      }
+      .checkmark {
+          position: absolute;
+          top: 0; left: 0;
+          height: 22px; width: 22px;
+          background-color: var(--bg-base);
+          border: 2px solid var(--border);
+          border-radius: 6px;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+      .checkbox-row:hover .checkmark {
+          border-color: var(--accent);
+      }
+      .checkbox-container input:checked ~ .checkmark {
+          background-color: var(--accent);
+          border-color: var(--accent);
+      }
+      .checkmark i {
+          color: var(--bg-base);
+          width: 14px;
+          height: 14px;
+          opacity: 0;
+          transform: scale(0.5);
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .checkbox-container input:checked ~ .checkmark i {
+          opacity: 1;
+          transform: scale(1);
+      }
+      .checkbox-label {
+          font-size: 0.95rem;
+          font-weight: 500;
+      }
+
+      /* Preview Layout */
+      .preview-container {
+          width: 100%;
+          aspect-ratio: 1/1;
+          background-color: var(--bg-base);
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: visible;   /* allow tooltip to extend beyond card edge */
+          box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+      }
+      .preview-svg {
+          width: 90%;
+          height: 90%;
+          overflow: visible;   /* SVG tooltips render outside viewBox bounds */
+      }
+
+      /* G-Code Output */
+      .code-output {
+          background-color: var(--bg-base);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 16px;
+          font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+          font-size: 0.9rem;
+          line-height: 1.5;
+          color: #a9b7c6;
+          white-space: pre-wrap;
+          overflow-y: auto;
+          min-height: 250px;
+          max-height: 450px;
+          flex-grow: 1;
+          resize: none;
+          box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+          scrollbar-width: thin;
+          scrollbar-color: var(--border) var(--bg-base);
+      }
+      .code-output:focus {
+          outline: none;
+          border-color: rgba(255, 107, 53, 0.5);
+      }
+      
+      .action-buttons {
+          display: flex;
+          gap: 16px;
+          margin-top: auto;
+      }
+      .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 0 20px;
+          height: 48px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 0.95rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: none;
+          flex: 1;
+      }
+      .btn-primary {
+          background-color: var(--accent);
+          color: var(--bg-base);
+      }
+      .btn-primary:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
+      .btn-primary:active { transform: translateY(1px); }
+      
+      .btn-secondary {
+          background-color: var(--bg-card);
+          color: var(--text-main);
+          border: 1px solid var(--border);
+      }
+      .btn-secondary:hover { background-color: var(--bg-card-hover); }
+      
+      .outputs-column {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+      }
+
+      /* Divider utility */
+      .divider {
+          height: 1px;
+          background-color: var(--border);
+          margin: 4px 0;
+          width: 100%;
+      }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- Sidebar / Bottom Nav -->
+    <nav class="nav-rail">
+        <div class="nav-header">
+            <i data-lucide="target"></i> G-Floor
+        </div>
+        <div class="nav-items">
+            <a href="#" class="nav-item active">
+                <i data-lucide="circle-dashed"></i>
+                <span class="nav-text">Bolt Circle</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="screw-double-sw"></i>
+                <span class="nav-text">Tap Drill</span>
+                <span class="coming-soon-badge">Soon</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="zap"></i>
+                <span class="nav-text">Speeds</span>
+                <span class="coming-soon-badge">Soon</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="ruler"></i>
+                <span class="nav-text">Tolerance</span>
+                <span class="coming-soon-badge">Soon</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top App Bar -->
+        <header class="top-header">
+            <div class="mobile-logo">
+                <i data-lucide="target"></i> G-Floor
+            </div>
+            <div style="flex:1"></div>
+            <div class="control-switch" id="controlToggle" data-mode="Haas" onclick="toggleControl()">
+                <div class="switch-pill"></div>
+                <span class="switch-label">HAAS</span>
+                <span class="switch-label">FANUC</span>
+            </div>
+        </header>
+
+
+        <!-- Tool Dashboard -->
+        <div class="dashboard">
+            <!-- Inputs Panel -->
+            <div class="card id-card">
+                <div class="card-header">
+                    <i data-lucide="sliders-horizontal"></i> Parameters
+                </div>
+                <div class="card-body">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="progNum">Program Number</label>
+                            <input type="text" id="progNum" value="1234" data-validate="numeric">
+                            <span class="error-text">Numeric only</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="holeDia">Hole Dia. (in)</label>
+                            <input type="text" id="holeDia" value="0.875" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="toolNum">Tool Number (T)&nbsp;<span id="toolBadge" style="font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:4px;"></span></label>
+                        <input type="text" id="toolNum" value="8" data-validate="numeric">
+                        <span class="error-text">Numeric only</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="bcDia">Bolt Circle Dia. (in)</label>
+                            <input type="text" id="bcDia" value="6.500" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="holes">Number of Holes</label>
+                            <input type="text" id="holes" value="8" data-validate="numeric">
+                            <span class="error-text">Whole number required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="startAngle">Start Angle (deg)</label>
+                            <input type="text" id="startAngle" value="0" data-validate="decimal">
+                            <span class="error-text">Valid angle required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="thickness">Material Thickness (in)</label>
+                            <input type="text" id="thickness" value="1.440" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="clearance">Clearance Height (Z)</label>
+                            <input type="text" id="clearance" value="1.0" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9889; SPEED &amp; FEED CALCULATOR</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="sfm">Surface Footage (SFM)</label>
+                            <input type="text" id="sfm" value="500" data-validate="numeric">
+                            <span class="error-text">Numeric only</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="calcRpm">Calculated RPM <span style="font-size:0.7rem;color:var(--text-muted);">3.82&times;SFM&divide;Dia</span></label>
+                            <input type="text" id="calcRpm" readonly style="color:var(--accent);background-color:var(--bg-base);cursor:default;">
+                        </div>
+                        <div class="form-group">
+                            <label for="feed">Feed Rate (IPM)</label>
+                            <input type="text" id="feed" value="5" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <label class="checkbox-row">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="centerDrill">
+                            <div class="checkmark"><i data-lucide="check"></i></div>
+                        </div>
+                        <span class="checkbox-label">Include Center Drill Op (T4, S2500, F5.)</span>
+                    </label>
+                    <label class="checkbox-row">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="includeDeburr">
+                            <div class="checkmark"><i data-lucide="check"></i></div>
+                        </div>
+                        <span class="checkbox-label">Include Deburr Cycle (T6) <span id="deburr-warning" style="color:var(--accent);font-size:0.8rem;"></span></span>
+                    </label>
+                    <div id="wAxisRow">
+                    <label class="checkbox-row">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="includeW">
+                            <div class="checkmark"><i data-lucide="check"></i></div>
+                        </div>
+                        <span class="checkbox-label">Include W Axis (W0.0)</span>
+                    </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Output Panel (unchanged from original) -->
+            <div class="outputs-column">
+                <div class="card">
+                    <div class="card-header">
+                        <i data-lucide="eye"></i> Live Position Preview
+                    </div>
+                    <div class="card-body" style="padding-bottom: 24px;">
+                        <div class="preview-container">
+                            <svg class="preview-svg" viewBox="-120 -120 240 240" id="previewCanvas"></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <i data-lucide="file-code-2"></i> Generated Code
+                    </div>
+                    <div class="card-body" style="flex:1;">
+                        <textarea class="code-output" id="outputArea" readonly></textarea>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="copyToClipboard()" id="copyBtn">
+                                <i data-lucide="copy"></i> Copy
+                            </button>
+                            <button class="btn btn-primary" onclick="downloadCode()">
+                                <i data-lucide="download"></i> Download .nc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Service Worker stub -->
+<script>
+    if ('serviceWorker' in navigator) {
+        // navigator.serviceWorker.register('/sw.js');
+    }
+</script>
+
+<script>
+// ============================================================
+// G-FLOOR — BOLT CIRCLE ENGINE v2
+// ============================================================
+const TOOL_TABLE = {
+    "0.750": { tool: 8,  sfm: 500, feed: 5 },
+    "0.875": { tool: 8,  sfm: 500, feed: 5 },
+    "1.000": { tool: 9,  sfm: 500, feed: 4 },
+    "1.125": { tool: 10, sfm: 500, feed: 4 },
+    "1.250": { tool: 11, sfm: 500, feed: 4 },
+    "1.375": { tool: 12, sfm: 500, feed: 4 },
+    "1.500": { tool: 13, sfm: 500, feed: 3 },
+    "1.625": { tool: 14, sfm: 500, feed: 3 },
+    "1.750": { tool: 23, sfm: 500, feed: 3 },
+    "2.000": { tool: 24, sfm: 500, feed: 3 },
+    "2.125": { tool: 24, sfm: 500, feed: 3 }
+};
+const DEBURR_MAX_DIA = 1.375;
+
+lucide.createIcons();
+
+const elProgNum       = document.getElementById('progNum');
+const elToolNum       = document.getElementById('toolNum');
+const elToolBadge     = document.getElementById('toolBadge');
+const elBcDia         = document.getElementById('bcDia');
+const elHoles         = document.getElementById('holes');
+const elHoleDia       = document.getElementById('holeDia');
+const elStartAngle    = document.getElementById('startAngle');
+const elThickness     = document.getElementById('thickness');
+const elClearance     = document.getElementById('clearance');
+const elSfm           = document.getElementById('sfm');
+const elCalcRpm       = document.getElementById('calcRpm');
+const elFeed          = document.getElementById('feed');
+const elCenterDrill   = document.getElementById('centerDrill');
+const elIncludeDeburr = document.getElementById('includeDeburr');
+const elDeburWarn     = document.getElementById('deburr-warning');
+const elIncludeW      = document.getElementById('includeW');
+const elWAxisRow      = document.getElementById('wAxisRow');
+const controlToggle   = document.getElementById('controlToggle');
+const outputArea      = document.getElementById('outputArea');
+const previewCanvas   = document.getElementById('previewCanvas');
+const copyBtn         = document.getElementById('copyBtn');
+
+const persistedInputs = {
+    progNum: elProgNum, toolNum: elToolNum, bcDia: elBcDia,
+    holes: elHoles, holeDia: elHoleDia, startAngle: elStartAngle,
+    thickness: elThickness, clearance: elClearance,
+    sfm: elSfm, feed: elFeed,
+    centerDrill: elCenterDrill, includeDeburr: elIncludeDeburr,
+    includeW: elIncludeW
+};
+
+let controlMode = localStorage.getItem('gfloor_control') || 'Haas';
+controlToggle.dataset.mode = controlMode;
+
+function updateWAxisVisibility() {
+    // W axis is Fanuc only — hide on Haas to prevent accidental inclusion
+    if (controlMode === 'Haas') {
+        elWAxisRow.style.display = 'none';
+        elIncludeW.checked = false;
+        localStorage.setItem('gfloor_includeW', false);
+    } else {
+        elWAxisRow.style.display = 'block';
+    }
+}
+
+function toggleControl() {
+    controlMode = controlMode === 'Haas' ? 'Fanuc' : 'Haas';
+    controlToggle.dataset.mode = controlMode;
+    localStorage.setItem('gfloor_control', controlMode);
+    updateWAxisVisibility();
+    generate();
+}
+
+for (const key in persistedInputs) {
+    const saved = localStorage.getItem('gfloor_' + key);
+    if (saved === null) continue;
+    const el = persistedInputs[key];
+    if (el.type === 'checkbox') el.checked = (saved === 'true');
+    else el.value = saved;
+}
+
+function lookupTool() {
+    const dia = parseFloat(elHoleDia.value);
+    if (isNaN(dia)) return;
+    const key = dia.toFixed(3);
+    const entry = TOOL_TABLE[key];
+    if (entry) {
+        elToolNum.value = entry.tool;
+        elToolBadge.textContent = 'AUTO';
+        elToolBadge.style.cssText = 'background:rgba(255,107,53,0.2);color:var(--accent);';
+        // Only pre-fill SFM if it still looks like a default value
+        const sfmNow = parseInt(elSfm.value);
+        if (sfmNow === 500 || sfmNow === 400) elSfm.value = entry.sfm;
+        elFeed.value = entry.feed;
+    } else {
+        elToolBadge.textContent = 'UNKNOWN — enter manually';
+        elToolBadge.style.cssText = 'background:rgba(255,180,0,0.15);color:#ffb400;';
+        if (!elFeed.value) elFeed.value = '3';
+    }
+    updateDeburWarning();
+    calcRpm();
+}
+
+function calcRpm() {
+    const sfm = parseFloat(elSfm.value);
+    const dia = parseFloat(elHoleDia.value);
+    if (isNaN(sfm) || isNaN(dia) || dia <= 0) { elCalcRpm.value = '---'; return; }
+    elCalcRpm.value = Math.round(3.82 * sfm / dia);
+}
+
+function updateDeburWarning() {
+    const dia = parseFloat(elHoleDia.value);
+    if (isNaN(dia)) return;
+    if (dia > DEBURR_MAX_DIA) {
+        elDeburWarn.textContent = '(' + dia + '" — exceeds 1.375 max)';
+        elIncludeDeburr.checked = false;
+        elIncludeDeburr.disabled = true;
+    } else {
+        elDeburWarn.textContent = '';
+        elIncludeDeburr.disabled = false;
+    }
+}
+
+function validateInput(el) {
+    if (!el.dataset.validate) return true;
+    const val = el.value.trim();
+    const type = el.dataset.validate;
+    let valid = true;
+    if (type === 'numeric') valid = /^\d+$/.test(val);
+    else if (type === 'decimal') valid = !isNaN(parseFloat(val)) && /^-?\d*\.?\d+$/.test(val);
+    el.classList.toggle('error', !valid);
+    return valid;
+}
+
+function fmt(num, dec = 4) {
+    let s = num.toFixed(dec).replace(/(\.\d*?)0+$/, '$1');
+    if (s.slice(-1) === '.') s += '0';
+    return s;
+}
+
+function fmtProg(val) {
+    let n = parseInt(val, 10);
+    if (isNaN(n) || n < 0) n = 0;
+    return 'O' + n.toString().padStart(4, '0');
+}
+
+function holePositions(bcDia, holes, startAngle) {
+    const r = bcDia / 2;
+    const inc = 360 / holes;
+    return Array.from({ length: holes }, (_, i) => {
+        const rad = (startAngle + i * inc) * Math.PI / 180;
+        return { x: r * Math.cos(rad), y: r * Math.sin(rad), num: i + 1 };
+    });
+}
+
+// Independent bolt circle position calculator for the preview
+// Uses the same trig formula as holePositions() but calculated fresh
+// so preview coordinates are never derived from the G-code path —
+// they are a separate verification source.
+function previewHolePositions(bcDia, holes, startAngle) {
+    const r = bcDia / 2;
+    const inc = 360 / holes;
+    return Array.from({ length: holes }, (_, i) => {
+        const deg = startAngle + i * inc;
+        const rad = deg * (Math.PI / 180);
+        return {
+            x: r * Math.cos(rad),   // actual machine X
+            y: r * Math.sin(rad),   // actual machine Y
+            deg,
+            num: i + 1
+        };
+    });
+}
+
+function drawPreview(bcDia, holes, holeDia, startAngle) {
+    if (isNaN(bcDia) || isNaN(holes) || isNaN(holeDia) || holes <= 0 || bcDia <= 0) return;
+
+    const pts   = previewHolePositions(bcDia, holes, startAngle);
+    const scale = 90 / (bcDia / 2 + holeDia / 2);
+    const sr    = (bcDia / 2) * scale;
+    const hr    = Math.max((holeDia / 2) * scale, 4);
+
+    let svg = '';
+
+    // Crosshairs
+    svg += `<line x1="-110" y1="0" x2="110" y2="0" stroke="var(--border)" stroke-dasharray="4,4" stroke-width="1.5"/>`;
+    svg += `<line x1="0" y1="-110" x2="0" y2="110" stroke="var(--border)" stroke-dasharray="4,4" stroke-width="1.5"/>`;
+
+    // Bolt circle reference ring
+    svg += `<circle cx="0" cy="0" r="${sr}" stroke="var(--border)" stroke-dasharray="6,4" stroke-width="2" fill="none"/>`;
+
+    for (const pt of pts) {
+        const sx  = pt.x * scale;
+        const sy  = -pt.y * scale;   // SVG Y is inverted vs machine Y
+        const ang = Math.atan2(pt.y, pt.x);
+
+        // Label offset — push outward from center
+        const labelR = hr + 14;
+        const lx = sx + Math.cos(ang) * labelR;
+        const ly = sy - Math.sin(ang) * labelR;
+
+        // Coordinate tooltip — positioned offset from hole, stays within viewBox
+        // Flip to inside if hole is near edge
+        const tipOffX = (pt.x >= 0) ? (hr + 4) : -(hr + 4);
+        const tipAnchor = (pt.x >= 0) ? 'start' : 'end';
+        const tipX = sx + tipOffX;
+        const tipY = sy - (hr + 6);
+
+        const xStr = fmt(pt.x, 3);
+        const yStr = fmt(pt.y, 3);
+
+        // Visible hole — rendered BEFORE hit area so hit area stays on top
+        svg += `<circle class="hole-vis" cx="${sx}" cy="${sy}" r="${hr}"
+                    fill="rgba(255,107,53,0.15)" stroke="var(--accent)" stroke-width="2"/>`;
+
+        // Center dot
+        svg += `<circle cx="${sx}" cy="${sy}" r="1.5" fill="var(--bg-base)"/>`;
+
+        // Hole number label
+        svg += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle"
+                    font-size="11" fill="var(--text-muted)" font-weight="600">${pt.num}</text>`;
+
+        // Hit area rendered LAST so it sits above the visible elements and catches all pointer events
+        svg += `<circle class="hole-hit" cx="${sx}" cy="${sy}" r="${Math.max(hr, 18)}"
+                    fill="transparent" stroke="none" style="cursor:pointer;"
+                    data-hole="${pt.num}" data-x="${xStr}" data-y="${yStr}"
+                    data-sx="${sx.toFixed(1)}" data-sy="${sy.toFixed(1)}"/>`;
+    }
+
+    // Tooltip group — hidden until a hole is activated
+    // Rendered at end of SVG so it always draws on top of everything
+    svg += `<g id="coordTip" style="display:none;" pointer-events="none">
+                <rect id="tipBg" rx="4" ry="4" fill="#1e2025" stroke="var(--accent)" stroke-width="1.5"/>
+                <text id="tipText" font-size="12" font-weight="700" fill="var(--text-main)" dominant-baseline="middle"></text>
+            </g>`;
+
+    previewCanvas.innerHTML = svg;
+
+    // Wire up hover (desktop) and touch (tablet) events
+    let activeHole = null;
+
+    function showTip(el) {
+        const tipG    = previewCanvas.querySelector('#coordTip');
+        const tipBg   = previewCanvas.querySelector('#tipBg');
+        const tipText = previewCanvas.querySelector('#tipText');
+        const x       = el.dataset.x;
+        const y       = el.dataset.y;
+        const num     = el.dataset.hole;
+        const sx      = parseFloat(el.dataset.sx);
+        const sy      = parseFloat(el.dataset.sy);
+
+        tipText.textContent = `#${num}   X${x}   Y${y}`;
+        tipG.style.display = 'block';
+
+        // Use requestAnimationFrame so Safari/WebKit has rendered the text
+        // before we measure it — getBBox() returns 0 on hidden/unrendered elements
+        requestAnimationFrame(() => {
+            let tw, th;
+            try {
+                const bbox = tipText.getBBox();
+                tw = bbox.width;
+                th = bbox.height;
+            } catch(e) {
+                // Fallback estimate if getBBox fails
+                tw = tipText.textContent.length * 7;
+                th = 16;
+            }
+
+            // Minimum size guard
+            if (tw < 10) tw = tipText.textContent.length * 7;
+            if (th < 8)  th = 16;
+
+            const pad  = 6;
+            tw += pad * 2;
+            th += pad * 2;
+
+            // ViewBox is -120 to +120, keep tooltip 12px inside edges
+            const vbMax = 108;
+            let tx, ty;
+
+            // Horizontal: prefer right, flip left if it clips
+            if (sx + hr + tw + 4 <= vbMax) {
+                tx = sx + hr + 4;
+            } else {
+                tx = sx - hr - tw - 4;
+            }
+
+            // Vertical: center on hole, clamp to viewBox
+            ty = sy - th / 2;
+            if (ty < -vbMax)        ty = -vbMax;
+            if (ty + th > vbMax)    ty = vbMax - th;
+
+            tipBg.setAttribute('x',      tx);
+            tipBg.setAttribute('y',      ty);
+            tipBg.setAttribute('width',  tw);
+            tipBg.setAttribute('height', th);
+
+            tipText.setAttribute('text-anchor', 'start');
+            tipText.setAttribute('x', tx + pad);
+            tipText.setAttribute('y', ty + th / 2);
+
+            // Highlight active hole
+            previewCanvas.querySelectorAll('.hole-vis').forEach(c => c.setAttribute('stroke-width', '2'));
+            const idx = parseInt(num) - 1;
+            const vis = previewCanvas.querySelectorAll('.hole-vis')[idx];
+            if (vis) vis.setAttribute('stroke-width', '3.5');
+
+            activeHole = el;
+        });
+    }
+
+    function hideTip() {
+        const tipG = previewCanvas.querySelector('#coordTip');
+        if (tipG) tipG.style.display = 'none';
+        previewCanvas.querySelectorAll('.hole-vis').forEach(c => c.setAttribute('stroke-width', '2'));
+        activeHole = null;
+    }
+
+    previewCanvas.querySelectorAll('.hole-hit').forEach(el => {
+        // Desktop hover
+        el.addEventListener('mouseenter', () => showTip(el));
+        el.addEventListener('mouseleave', hideTip);
+
+        // Tablet tap — toggle: tap same hole hides, tap new hole shows
+        el.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (activeHole === el) { hideTip(); }
+            else { showTip(el); }
+        }, { passive: false });
+    });
+}
+
+function generate() {
+    let ok = true;
+    for (const key in persistedInputs) {
+        const el = persistedInputs[key];
+        if (el.type !== 'checkbox' && !validateInput(el)) ok = false;
+    }
+    if (!ok) { outputArea.value = '(ERROR: Fix highlighted inputs above)'; return; }
+
+    const isHaas  = controlMode === 'Haas';
+    const progNum = fmtProg(elProgNum.value);
+    const toolNum = parseInt(elToolNum.value) || 9;
+    const tPad    = toolNum.toString().padStart(2, '0');
+    const bcDia   = parseFloat(elBcDia.value);
+    const holes   = parseInt(elHoles.value);
+    const holeDia = parseFloat(elHoleDia.value);
+    const angle   = parseFloat(elStartAngle.value) || 0;
+    const thick   = parseFloat(elThickness.value);
+    const clr     = parseFloat(elClearance.value);
+    const rpm     = parseInt(elCalcRpm.value) || 0;
+    const feed    = parseFloat(elFeed.value);
+    const doCenterDrill = elCenterDrill.checked;
+    const doDeburr      = elIncludeDeburr.checked && holeDia <= DEBURR_MAX_DIA;
+    const doW           = elIncludeW.checked;
+
+    drawPreview(bcDia, holes, holeDia, angle);
+
+    const drillDepth = fmt(thick + 0.25);
+    const strFeed    = (feed % 1 === 0) ? (feed + '.') : feed.toString();
+    const strClr     = (clr % 1 === 0) ? (clr + '.') : clr.toString();
+    const pts        = holePositions(bcDia, holes, angle);
+
+    const c = [];
+    const push  = (...lines) => lines.forEach(l => c.push(l));
+    const blank = () => c.push('');
+
+    // HEADER
+    push('%', progNum);
+    push(`(BOLT CIRCLE - ${holes}X ${fmt(holeDia,3)} ON ${fmt(bcDia,3)} BC)`);
+    push(`(MATERIAL THICKNESS: ${fmt(thick,3)})`);
+    blank();
+    if (doCenterDrill) push(`(T4  - CENTER DRILL)`);
+    push(`(T${tPad}  - ${fmt(holeDia,3)} INSERTED DRILL)`);
+    if (doDeburr) push(`(T6  - DEBURR TOOL)`);
+    blank();
+
+    if (isHaas) {
+        const radius = fmt(bcDia / 2, 4);
+        const jAng   = fmt(angle, 1);
+
+        if (doCenterDrill) {
+            push(`(TURN BLOCK DELETE ON FOR FIRST PART)`);
+            blank();
+            push(`/GOTO7`);
+            blank();
+            push(`G00 G90 G57 X0. Y0.`);
+            blank();
+            push(`(CENTER DRILL)`);
+            push(`G00 G90 G57 X0. Y0.`);
+            push(`N10 T4 M06`);
+            push(`M08`);
+            push(`G00 G90 G54 S2500 M03`);
+            push(`G43 H04 T${tPad} X0. Y0.`);
+            push(`Z${strClr}`);
+            push(`G81 G98 Z-0.03 R0.1 F5. L0`);
+            push(`G70 I${radius} J${jAng} L${holes}`);
+            push(`Z${strClr}`);
+            push(`M05`);
+            push(`M09`);
+            push(`G00 G90 M89`);
+            push(`G28 G91 Z0.`);
+            push(`G28 G91 Y0.`);
+            push(`M01`);
+            blank();
+            push(`N7`);
+            blank();
+        }
+
+        push(`G00 G90 G57 X0. Y0.`);
+        blank();
+        push(`(${fmt(holeDia,3)} INSERTED DRILL)`);
+        push(`N20 T${tPad} M06`);
+        push(`G00 G90 G54 S${rpm} M03`);
+        push(`G43 H${tPad} T${doDeburr ? '06' : '04'} X0. Y0.`);
+        push(`Z${strClr}`);
+        push(`M31`);
+        push(`M88`);
+        push(`G81 G98 Z-${drillDepth} R0.1 F${strFeed} L0`);
+        push(`G70 I${radius} J${jAng} L${holes}`);
+        push(`Z${strClr}`);
+        push(`M05`);
+        push(`M09`);
+        push(`G00 G90 M89`);
+        push(`G28 G91 Z0.`);
+        push(`G28 G91 Y0.`);
+        push(`M01`);
+        blank();
+
+        if (doDeburr) {
+            // Deburr Z math:
+            // Top chamfer:    rapid to Z0.1, feed down to Z-0.5 (breaks top corner)
+            // Bottom chamfer: rapid to Z-(thick+0.75), feed up to Z-(thick+0.55)
+            const rapBelow = fmt(-(thick + 0.75), 4);
+            const feedUp   = fmt(-(thick + 0.55), 4);
+            push(`G00 G90 G57 X0. Y0.`);
+            blank();
+            push(`(${fmt(holeDia,3)} DEBURR TOOL)`);
+            push(`N30 T6 M06`);
+            push(`G00 G90 G54 S1500 M03`);
+            push(`G43 H06 T04 X0. Y0.`);
+            push(`Z${strClr}`);
+            push(`M08`);
+            blank();
+            for (const pt of pts) {
+                const px = fmt(pt.x, 4), py = fmt(pt.y, 4);
+                push(`(HOLE ${pt.num} OF ${holes} - X${px} Y${py})`);
+                push(`G00 Z${strClr}`);
+                push(`G00 X${px} Y${py}`);
+                push(`G00 Z0.1`);
+                push(`G01 Z-0.5 F20.`);
+                push(`G00 Z${rapBelow}`);
+                push(`G01 Z${feedUp} F20.`);
+                blank();
+            }
+            push(`G00 Z${strClr}`);
+            push(`M05`);
+            push(`M09`);
+            push(`G00 G90 M89`);
+            push(`G28 G91 Z0.`);
+            push(`G28 G91 Y0.`);
+            push(`G90`);
+            blank();
+        }
+
+        push(`M30`);
+        push(`%`);
+
+    } else {
+        // FANUC
+        push(`G28 G91 W0. Z0.`);
+        push(`G00 G17 G40 G80 G90 G94`);
+
+        if (doCenterDrill) {
+            push(`(.500 CENTER-DRILL)`);
+            push(`N1 (STEP) T4 M06`);
+            push(`G00 G90 G54 S2200 M03`);
+            push(`X${fmt(pts[0].x,4)} Y${fmt(pts[0].y,4)} B0.`);
+            push(`G43 H4 Z10. T${tPad}`);
+            if (doW) push(`W0.0`);
+            push(`Z10.`);
+            push(`G98 G81 Z-0.03 R0.1 F3.`);
+            // G81 fires at the pre-positioned hole (pts[0]) — start loop at hole 2
+            pts.forEach((pt, i) => {
+                if (i === 0) return;
+                push(`X${fmt(pt.x,4)} Y${fmt(pt.y,4)}`);
+            });
+            push(`G80`);
+            push(`G00`);
+            if (doW) push(`W0.0`);
+            push(`Z10.`);
+            push(`M05`);
+            push(`M09`);
+            push(`G91 G28 W0. Z0.`);
+            push(`M01`);
+            blank();
+            blank();
+            push(`G28 G91 W0. Z0.`);
+            push(`G00 G17 G40 G80 G90 G94`);
+        }
+
+        const stepNum = doCenterDrill ? 'N2' : 'N1';
+        push(`(${fmt(holeDia,3)} INSERTED DRILL)`);
+        push(`${stepNum} (STEP) T${tPad} M06`);
+        push(`G00 G90 G54 S${rpm} M03`);
+        push(`X${fmt(pts[0].x,4)} Y${fmt(pts[0].y,4)} B0.`);
+        push(`G43 H${tPad} Z10. T4`);
+        push(`M07`);
+        if (doW) push(`W0.0`);
+        push(`Z10.`);
+        push(`G98 G81 Z-${drillDepth} R0.1 F${strFeed}`);
+        // G81 fires at the pre-positioned hole (pts[0]) — start loop at hole 2
+        pts.forEach((pt, i) => {
+            if (i === 0) return;
+            push(`X${fmt(pt.x,4)} Y${fmt(pt.y,4)}`);
+        });
+        push(`G80`);
+        push(`G00`);
+        if (doW) push(`W0.0`);
+        push(`Z10.`);
+        push(`M05`);
+        push(`M09`);
+        push(`G91 G28 W0. Z0.`);
+        push(`M30`);
+        push(`%`);
+    }
+
+    outputArea.value = c.join('\n');
+}
+
+function copyToClipboard() {
+    outputArea.select();
+    document.execCommand('copy');
+    const orig = copyBtn.innerHTML;
+    copyBtn.innerHTML = '<i data-lucide="check"></i> Copied!';
+    copyBtn.style.cssText = 'color:var(--bg-base);background-color:var(--accent);border-color:var(--accent);';
+    lucide.createIcons();
+    setTimeout(() => { copyBtn.innerHTML = orig; copyBtn.style = ''; lucide.createIcons(); }, 2000);
+}
+
+function downloadCode() {
+    const content = outputArea.value;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = fmtProg(elProgNum.value) + '.nc';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Event wiring
+elHoleDia.addEventListener('input', () => {
+    localStorage.setItem('gfloor_holeDia', elHoleDia.value);
+    lookupTool(); generate();
+});
+elSfm.addEventListener('input', () => {
+    localStorage.setItem('gfloor_sfm', elSfm.value);
+    calcRpm(); generate();
+});
+[elProgNum, elToolNum, elBcDia, elHoles, elStartAngle, elThickness, elClearance, elFeed].forEach(el => {
+    el.addEventListener('input', () => {
+        const key = Object.keys(persistedInputs).find(k => persistedInputs[k] === el);
+        if (key) localStorage.setItem('gfloor_' + key, el.value);
+        if (validateInput(el)) generate();
+    });
+});
+[elCenterDrill, elIncludeDeburr, elIncludeW].forEach(el => {
+    el.addEventListener('change', () => {
+        const key = Object.keys(persistedInputs).find(k => persistedInputs[k] === el);
+        if (key) localStorage.setItem('gfloor_' + key, el.checked);
+        generate();
+    });
+});
+
+// Boot
+lookupTool();
+updateWAxisVisibility();
+generate();
+</script>
+</body>
+</html>
