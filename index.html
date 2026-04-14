@@ -195,14 +195,186 @@
         <!-- ── THREAD MILL TAB ──────────────────────────── -->
         <div id="tab-thread-mill" class="tab-content">
             <div class="dashboard">
+
+                <!-- Inputs Panel -->
                 <div class="card">
                     <div class="card-header">
-                        <i data-lucide="rotate-cw"></i> Thread Mill — Coming Soon
+                        <i data-lucide="rotate-cw"></i> Thread Mill Parameters
                     </div>
                     <div class="card-body">
-                        <p style="color:var(--text-muted);">Single hole thread mill generator — in development.</p>
+
+                        <!-- Program + Thread Size selector -->
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="tm-progNum">Program Number</label>
+                                <input type="text" id="tm-progNum" value="1234" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-threadSize">Thread Size</label>
+                                <select id="tm-threadSize" style="background-color:var(--bg-card);border:1px solid var(--border);color:var(--text-main);padding:14px 16px;border-radius:8px;font-family:Inter,sans-serif;font-size:1rem;font-weight:500;min-height:48px;width:100%;cursor:pointer;">
+                                    <option value="">— Select Thread —</option>
+                                    <option value="0.625-11">5/8&quot;-11</option>
+                                    <option value="0.750-10">3/4&quot;-10</option>
+                                    <option value="0.875-9">7/8&quot;-9</option>
+                                    <option value="1.000-8">1&quot;-8</option>
+                                    <option value="1.125-8">1-1/8&quot;-8</option>
+                                    <option value="1.250-8">1-1/4&quot;-8</option>
+                                    <option value="1.375-8">1-3/8&quot;-8</option>
+                                    <option value="1.500-8">1-1/2&quot;-8</option>
+                                    <option value="1.625-8">1-5/8&quot;-8</option>
+                                    <option value="1.750-8">1-3/4&quot;-8</option>
+                                    <option value="1.875-8">1-7/8&quot;-8</option>
+                                    <option value="2.000-8">2&quot;-8</option>
+                                    <option value="2.250-8">2-1/4&quot;-8</option>
+                                    <option value="2.500-8">2-1/2&quot;-8</option>
+                                    <option value="2.750-8">2-3/4&quot;-8</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tool info — auto filled, editable -->
+                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9881; TOOL</div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="tm-toolNum">Tool Number (T)</label>
+                                <input type="text" id="tm-toolNum" value="" placeholder="Enter tool #" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-toolDia">Tool Diameter (in)</label>
+                                <input type="text" id="tm-toolDia" value="" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-tipOffset">Tip Offset (in)</label>
+                                <input type="text" id="tm-tipOffset" value="" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-toolType">Tool Type</label>
+                                <input type="text" id="tm-toolType" value="" readonly style="color:var(--accent);background-color:var(--bg-base);cursor:default;">
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Drill info -->
+                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9654; DRILL</div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="tm-drillDia">Drill Diameter (in)</label>
+                                <input type="text" id="tm-drillDia" value="" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-drillDepth">Drill Depth (in)</label>
+                                <input type="text" id="tm-drillDepth" value="" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Thread depth + position -->
+                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9632; THREAD</div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="tm-threadDepth">Thread Depth — Full Threads (in)</label>
+                                <input type="text" id="tm-threadDepth" value="" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div id="tm-cutLengthWarn" style="display:none; grid-column:1/-1;">
+                                <div style="background:rgba(255,77,77,0.1);border:1px solid #ff4d4d;border-radius:8px;padding:12px 16px;color:#ff4d4d;font-size:0.85rem;font-weight:600;">
+                                    &#9888; Thread depth exceeds tool cutting length — tool will break
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-xPos">X Position (in)</label>
+                                <input type="text" id="tm-xPos" value="0" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-yPos">Y Position (in)</label>
+                                <input type="text" id="tm-yPos" value="0" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Speed & feed -->
+                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9889; SPEED &amp; FEED</div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="tm-rpm">Spindle Speed (RPM)</label>
+                                <input type="text" id="tm-rpm" value="" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="tm-feed">Feed Rate (IPM)</label>
+                                <input type="text" id="tm-feed" value="" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Options -->
+                        <label class="checkbox-row">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="tm-centerDrill" checked>
+                                <div class="checkmark"><i data-lucide="check"></i></div>
+                            </div>
+                            <span class="checkbox-label">Include Center Drill (T4, S2500, F5.)</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="tm-chamfer" checked>
+                                <div class="checkmark"><i data-lucide="check"></i></div>
+                            </div>
+                            <span class="checkbox-label">Include Chamfer (T7, S2200, F10./F20.)</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="tm-rampBottom" checked>
+                                <div class="checkmark"><i data-lucide="check"></i></div>
+                            </div>
+                            <span class="checkbox-label">Ramp at Bottom (extends tool life)</span>
+                        </label>
+                        <div id="tm-wAxisRow">
+                            <label class="checkbox-row">
+                                <div class="checkbox-container">
+                                    <input type="checkbox" id="tm-includeW">
+                                    <div class="checkmark"><i data-lucide="check"></i></div>
+                                </div>
+                                <span class="checkbox-label">Include W Axis (W0.0)</span>
+                            </label>
+                        </div>
+
                     </div>
                 </div>
+
+                <!-- Output Panel -->
+                <div class="outputs-column">
+                    <div class="card" style="flex:1;">
+                        <div class="card-header">
+                            <i data-lucide="file-code-2"></i> Generated Code
+                        </div>
+                        <div class="card-body" style="flex:1;">
+                            <textarea class="code-output" id="tm-outputArea" readonly></textarea>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary" onclick="tmCopyToClipboard()" id="tm-copyBtn">
+                                    <i data-lucide="copy"></i> Copy
+                                </button>
+                                <button class="btn btn-primary" onclick="tmDownloadCode()">
+                                    <i data-lucide="download"></i> Download .nc
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         <!-- ── END THREAD MILL TAB ──────────────────────── -->
