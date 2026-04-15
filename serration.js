@@ -265,10 +265,10 @@ function srGenerate() {
     if (isFanuc) {
         push(nextStep() + ' (STEP) T' + ballTool + ' M06');
         push('G00 G90 G54 S0 M03');
-        push('X-' + srFmt(serrOuter) + ' Y0. B0.');
+        push('X-' + srFmt(serrInner) + ' Y0. B0.');
         push('G43 H' + ballTool + ' ' + clr + ' T' + faceTool);
         push('M08');
-        push('G00 X-' + srFmt(serrOuter) + ' Y0.');
+        push('G00 X-' + srFmt(serrInner) + ' Y0.');
         push('W0.0');
         push(clr);
         push('Z0.1');
