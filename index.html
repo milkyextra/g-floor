@@ -2,72 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>G-Floor | CNC Tools</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
 <div class="app-layout">
 
-    <!-- Sidebar / Bottom Nav -->
+    <!-- ── SIDEBAR NAV ─────────────────────────────────────── -->
     <nav class="nav-rail">
         <div class="nav-header">
-            <i data-lucide="target"></i> G-Floor
+            <i data-lucide="cpu"></i>
+            G-Floor
         </div>
         <div class="nav-items">
-            <a href="#" class="nav-item active" data-tab="bolt-circle">
-                <i data-lucide="circle-dashed"></i>
-                <span class="nav-text">Bolt Circle</span>
+            <a class="nav-item active" data-tab="bolt-circle" href="#">
+                <i data-lucide="circle-dot"></i>
+                Bolt Circle
             </a>
-            <a href="#" class="nav-item" data-tab="thread-mill">
+            <a class="nav-item" data-tab="thread-mill" href="#">
                 <i data-lucide="rotate-cw"></i>
-                <span class="nav-text">Thread Mill</span>
+                Thread Mill
             </a>
-            <a href="#" class="nav-item">
+            <a class="nav-item" data-tab="serration" href="#">
                 <i data-lucide="layers"></i>
-                <span class="nav-text">Prog Builder</span>
+                Serration
+            </a>
+            <a class="nav-item" href="#" style="opacity:0.45; pointer-events:none;">
+                <i data-lucide="blocks"></i>
+                Prog Builder
                 <span class="coming-soon-badge">Soon</span>
             </a>
-            <a href="#" class="nav-item">
-                <i data-lucide="ruler"></i>
-                <span class="nav-text">More</span>
+            <a class="nav-item" href="#" style="opacity:0.45; pointer-events:none;">
+                <i data-lucide="wrench"></i>
+                More
                 <span class="coming-soon-badge">Soon</span>
             </a>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
+    <!-- ── MAIN CONTENT ────────────────────────────────────── -->
+    <div class="main-content">
 
-        <!-- Top App Bar -->
+        <!-- Top Header -->
         <header class="top-header">
             <div class="mobile-logo">
-                <i data-lucide="target"></i> G-Floor
+                <i data-lucide="cpu"></i>
+                G-Floor
             </div>
-            <div style="flex:1"></div>
-            <div class="control-switch" id="controlToggle" data-mode="Haas" onclick="toggleControl()">
+            <div></div>
+            <div class="control-switch" id="controlToggle" onclick="toggleControl()">
                 <div class="switch-pill"></div>
                 <span class="switch-label">HAAS</span>
                 <span class="switch-label">FANUC</span>
             </div>
         </header>
 
-        <!-- ── BOLT CIRCLE TAB ───────────────────────────── -->
+        <!-- ── BOLT CIRCLE TAB ──────────────────────────────── -->
         <div id="tab-bolt-circle" class="tab-content active">
             <div class="dashboard">
 
                 <!-- Inputs Panel -->
                 <div class="card">
                     <div class="card-header">
-                        <i data-lucide="sliders-horizontal"></i> Parameters
+                        <i data-lucide="circle-dot"></i> Bolt Circle Parameters
                     </div>
                     <div class="card-body">
+
                         <div class="grid-2">
                             <div class="form-group">
                                 <label for="progNum">Program Number</label>
@@ -76,22 +82,25 @@
                             </div>
                             <div class="form-group">
                                 <label for="holeDia">Hole Dia. (in)</label>
-                                <input type="text" id="holeDia" value="0.875" data-validate="decimal">
+                                <input type="text" id="holeDia" value="1.000" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="toolNum">Tool Number (T)&nbsp;<span id="toolBadge" style="font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:4px;"></span></label>
-                            <input type="text" id="toolNum" value="8" data-validate="numeric">
-                            <span class="error-text">Numeric only</span>
-                        </div>
-                        <div class="divider"></div>
+
                         <div class="grid-2">
                             <div class="form-group">
+                                <label for="toolNum">Tool Number (T) <span id="toolBadge" style="font-size:0.75rem;padding:2px 8px;border-radius:4px;margin-left:6px;"></span></label>
+                                <input type="text" id="toolNum" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                            <div class="form-group">
                                 <label for="bcDia">Bolt Circle Dia. (in)</label>
-                                <input type="text" id="bcDia" value="6.500" data-validate="decimal">
+                                <input type="text" id="bcDia" value="8.000" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
+                        </div>
+
+                        <div class="grid-2">
                             <div class="form-group">
                                 <label for="holes">Number of Holes</label>
                                 <input type="text" id="holes" value="8" data-validate="numeric">
@@ -102,9 +111,12 @@
                                 <input type="text" id="startAngle" value="0" data-validate="decimal">
                                 <span class="error-text">Valid angle required</span>
                             </div>
+                        </div>
+
+                        <div class="grid-2">
                             <div class="form-group">
                                 <label for="thickness">Material Thickness (in)</label>
-                                <input type="text" id="thickness" value="1.440" data-validate="decimal">
+                                <input type="text" id="thickness" value="2.000" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                             <div class="form-group">
@@ -113,8 +125,12 @@
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                         </div>
+
                         <div class="divider"></div>
-                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9889; SPEED &amp; FEED CALCULATOR</div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="zap"></i> SPEED &amp; FEED CALCULATOR
+                        </div>
+
                         <div class="grid-2">
                             <div class="form-group">
                                 <label for="sfm">Surface Footage (SFM)</label>
@@ -122,30 +138,35 @@
                                 <span class="error-text">Numeric only</span>
                             </div>
                             <div class="form-group">
-                                <label for="calcRpm">Calculated RPM <span style="font-size:0.7rem;color:var(--text-muted);">3.82&times;SFM&divide;Dia</span></label>
-                                <input type="text" id="calcRpm" readonly style="color:var(--accent);background-color:var(--bg-base);cursor:default;">
-                            </div>
-                            <div class="form-group">
-                                <label for="feed">Feed Rate (IPM)</label>
-                                <input type="text" id="feed" value="5" data-validate="decimal">
-                                <span class="error-text">Valid decimal required</span>
+                                <label for="calcRpm">Calculated RPM <span style="font-size:0.75rem;color:var(--text-muted);">3.82×SFM÷Dia</span></label>
+                                <input type="text" id="calcRpm" readonly style="opacity:0.6;">
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="feed">Feed Rate (IPM)</label>
+                            <input type="text" id="feed" value="4.0" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+
                         <div class="divider"></div>
+
                         <label class="checkbox-row">
                             <div class="checkbox-container">
-                                <input type="checkbox" id="centerDrill">
+                                <input type="checkbox" id="centerDrill" checked>
                                 <div class="checkmark"><i data-lucide="check"></i></div>
                             </div>
                             <span class="checkbox-label">Include Center Drill Op (T4, S2500, F5.)</span>
                         </label>
+
                         <label class="checkbox-row">
                             <div class="checkbox-container">
                                 <input type="checkbox" id="includeDeburr">
                                 <div class="checkmark"><i data-lucide="check"></i></div>
                             </div>
-                            <span class="checkbox-label">Include Deburr Cycle (T6) <span id="deburr-warning" style="color:var(--accent);font-size:0.8rem;"></span></span>
+                            <span class="checkbox-label">Include Deburr Cycle (T6) <span id="deburr-warning" style="color:var(--error);font-size:0.8rem;display:none;"> — Drill &gt; 1.375", deburr disabled</span></span>
                         </label>
+
                         <div id="wAxisRow">
                             <label class="checkbox-row">
                                 <div class="checkbox-container">
@@ -155,22 +176,25 @@
                                 <span class="checkbox-label">Include W Axis (W0.0)</span>
                             </label>
                         </div>
+
                     </div>
                 </div>
 
-                <!-- Output Panel -->
+                <!-- Outputs Panel -->
                 <div class="outputs-column">
+
                     <div class="card">
                         <div class="card-header">
                             <i data-lucide="eye"></i> Live Position Preview
                         </div>
-                        <div class="card-body" style="padding-bottom: 24px;">
+                        <div class="card-body">
                             <div class="preview-container">
-                                <svg class="preview-svg" viewBox="-120 -120 240 240" id="previewCanvas"></svg>
+                                <svg id="previewCanvas" class="preview-svg" viewBox="-1 -1 2 2"></svg>
                             </div>
                         </div>
                     </div>
-                    <div class="card" style="flex: 1;">
+
+                    <div class="card" style="flex:1;">
                         <div class="card-header">
                             <i data-lucide="file-code-2"></i> Generated Code
                         </div>
@@ -186,13 +210,14 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
 
             </div>
         </div>
-        <!-- ── END BOLT CIRCLE TAB ──────────────────────── -->
+        <!-- ── END BOLT CIRCLE TAB ──────────────────────────── -->
 
-        <!-- ── THREAD MILL TAB ──────────────────────────── -->
+        <!-- ── THREAD MILL TAB ──────────────────────────────── -->
         <div id="tab-thread-mill" class="tab-content">
             <div class="dashboard">
 
@@ -203,7 +228,6 @@
                     </div>
                     <div class="card-body">
 
-                        <!-- Program + Thread Size selector -->
                         <div class="grid-2">
                             <div class="form-group">
                                 <label for="tm-progNum">Program Number</label>
@@ -233,94 +257,99 @@
                             </div>
                         </div>
 
-                        <!-- Tool info — auto filled, editable -->
-                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9881; TOOL</div>
+                        <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="settings"></i> TOOL
+                        </div>
+
                         <div class="grid-2">
                             <div class="form-group">
                                 <label for="tm-toolNum">Tool Number (T)</label>
-                                <input type="text" id="tm-toolNum" value="" placeholder="Enter tool #" data-validate="numeric">
+                                <input type="text" id="tm-toolNum" value="3" data-validate="numeric">
                                 <span class="error-text">Numeric only</span>
                             </div>
                             <div class="form-group">
                                 <label for="tm-toolDia">Tool Diameter (in)</label>
-                                <input type="text" id="tm-toolDia" value="" data-validate="decimal">
+                                <input type="text" id="tm-toolDia" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
+                        </div>
+
+                        <div class="grid-2">
                             <div class="form-group">
                                 <label for="tm-tipOffset">Tip Offset (in)</label>
-                                <input type="text" id="tm-tipOffset" value="" data-validate="decimal">
+                                <input type="text" id="tm-tipOffset" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                             <div class="form-group">
                                 <label for="tm-toolType">Tool Type</label>
-                                <input type="text" id="tm-toolType" value="" readonly style="color:var(--accent);background-color:var(--bg-base);cursor:default;">
+                                <input type="text" id="tm-toolType" readonly style="opacity:0.6;">
                             </div>
                         </div>
 
                         <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="arrow-down"></i> DRILL
+                        </div>
 
-                        <!-- Drill info -->
-                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9654; DRILL</div>
                         <div class="grid-2">
                             <div class="form-group">
                                 <label for="tm-drillDia">Drill Diameter (in)</label>
-                                <input type="text" id="tm-drillDia" value="" data-validate="decimal">
+                                <input type="text" id="tm-drillDia" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                             <div class="form-group">
                                 <label for="tm-drillDepth">Drill Depth (in)</label>
-                                <input type="text" id="tm-drillDepth" value="" data-validate="decimal">
+                                <input type="text" id="tm-drillDepth" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                         </div>
 
                         <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="minus-square"></i> THREAD
+                        </div>
 
-                        <!-- Thread depth + position -->
-                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9632; THREAD</div>
+                        <div class="form-group">
+                            <label for="tm-threadDepth">Thread Depth — Full Threads (in)</label>
+                            <input type="text" id="tm-threadDepth" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                            <span id="tm-cutLengthWarn" style="color:var(--error);font-size:0.75rem;display:none;">⚠ Thread depth exceeds tool cutting length — tool will break</span>
+                        </div>
+
                         <div class="grid-2">
                             <div class="form-group">
-                                <label for="tm-threadDepth">Thread Depth — Full Threads (in)</label>
-                                <input type="text" id="tm-threadDepth" value="" data-validate="decimal">
-                                <span class="error-text">Valid decimal required</span>
-                            </div>
-                            <div id="tm-cutLengthWarn" style="display:none; grid-column:1/-1;">
-                                <div style="background:rgba(255,77,77,0.1);border:1px solid #ff4d4d;border-radius:8px;padding:12px 16px;color:#ff4d4d;font-size:0.85rem;font-weight:600;">
-                                    &#9888; Thread depth exceeds tool cutting length — tool will break
-                                </div>
-                            </div>
-                            <div class="form-group">
                                 <label for="tm-xPos">X Position (in)</label>
-                                <input type="text" id="tm-xPos" value="0" data-validate="decimal">
+                                <input type="text" id="tm-xPos" value="0.0" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                             <div class="form-group">
                                 <label for="tm-yPos">Y Position (in)</label>
-                                <input type="text" id="tm-yPos" value="0" data-validate="decimal">
+                                <input type="text" id="tm-yPos" value="0.0" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                         </div>
 
                         <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="zap"></i> SPEED &amp; FEED
+                        </div>
 
-                        <!-- Speed & feed -->
-                        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;padding-bottom:4px;">&#9889; SPEED &amp; FEED</div>
                         <div class="grid-2">
                             <div class="form-group">
                                 <label for="tm-rpm">Spindle Speed (RPM)</label>
-                                <input type="text" id="tm-rpm" value="" data-validate="numeric">
+                                <input type="text" id="tm-rpm" data-validate="numeric">
                                 <span class="error-text">Numeric only</span>
                             </div>
                             <div class="form-group">
                                 <label for="tm-feed">Feed Rate (IPM)</label>
-                                <input type="text" id="tm-feed" value="" data-validate="decimal">
+                                <input type="text" id="tm-feed" data-validate="decimal">
                                 <span class="error-text">Valid decimal required</span>
                             </div>
                         </div>
 
                         <div class="divider"></div>
 
-                        <!-- Options -->
                         <label class="checkbox-row">
                             <div class="checkbox-container">
                                 <input type="checkbox" id="tm-centerDrill" checked>
@@ -328,6 +357,7 @@
                             </div>
                             <span class="checkbox-label">Include Center Drill (T4, S2500, F5.)</span>
                         </label>
+
                         <label class="checkbox-row">
                             <div class="checkbox-container">
                                 <input type="checkbox" id="tm-chamfer" checked>
@@ -335,6 +365,7 @@
                             </div>
                             <span class="checkbox-label">Include Chamfer (T7, S2200, F10./F20.)</span>
                         </label>
+
                         <label class="checkbox-row">
                             <div class="checkbox-container">
                                 <input type="checkbox" id="tm-rampBottom" checked>
@@ -342,6 +373,7 @@
                             </div>
                             <span class="checkbox-label">Ramp at Bottom (extends tool life)</span>
                         </label>
+
                         <div id="tm-wAxisRow">
                             <label class="checkbox-row">
                                 <div class="checkbox-container">
@@ -377,10 +409,105 @@
 
             </div>
         </div>
-        <!-- ── END THREAD MILL TAB ──────────────────────── -->
+        <!-- ── END THREAD MILL TAB ──────────────────────────── -->
 
-    </main>
-</div>
+        <!-- ── SERRATION TAB ─────────────────────────────────── -->
+        <div id="tab-serration" class="tab-content">
+            <div class="dashboard">
+
+                <!-- Inputs Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <i data-lucide="layers"></i> Serration Parameters
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Program + Tool Numbers -->
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="sr-progNum">Program Number</label>
+                                <input type="text" id="sr-progNum" value="1000" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="sr-faceToolNum">Face Mill Tool (T)</label>
+                                <input type="text" id="sr-faceToolNum" value="33" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                        </div>
+
+                        <!-- ID / OD -->
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="sr-idDia">Raised Face ID (in)</label>
+                                <input type="text" id="sr-idDia" value="29.000" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="sr-odDia">Raised Face OD (in)</label>
+                                <input type="text" id="sr-odDia" value="33.750" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                        </div>
+
+                        <!-- Ball tool -->
+                        <div class="form-group">
+                            <label for="sr-ballToolNum">Ball End Mill Tool (T)</label>
+                            <input type="text" id="sr-ballToolNum" value="51" data-validate="numeric">
+                            <span class="error-text">Numeric only</span>
+                        </div>
+
+                        <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="layers"></i> PASS DEPTH
+                        </div>
+
+                        <!-- Number of Passes + Total Remove -->
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="sr-numPasses">Number of Passes</label>
+                                <input type="text" id="sr-numPasses" value="1" data-validate="posint">
+                                <span class="error-text">Whole number, min 1</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="sr-totalRemove">Total Remove (in) <span style="font-size:0.75rem;color:var(--text-muted);">optional — overrides passes</span></label>
+                                <input type="text" id="sr-totalRemove" placeholder="e.g. 0.100" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:-8px;">
+                            Each pass removes 0.025". Final face pass ends at Z0. &nbsp;|&nbsp; Final profile pass ends at Z-0.24.
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Output Panel -->
+                <div class="outputs-column">
+                    <div class="card" style="flex:1;">
+                        <div class="card-header">
+                            <i data-lucide="file-code-2"></i> Generated Code
+                        </div>
+                        <div class="card-body" style="flex:1;">
+                            <textarea class="code-output" id="sr-outputArea" readonly></textarea>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary" onclick="srCopyToClipboard()" id="sr-copyBtn">
+                                    <i data-lucide="copy"></i> Copy
+                                </button>
+                                <button class="btn btn-primary" onclick="srDownloadCode()">
+                                    <i data-lucide="download"></i> Download .NC
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- ── END SERRATION TAB ─────────────────────────────── -->
+
+    </div><!-- end .main-content -->
+</div><!-- end .app-layout -->
 
 <!-- Service Worker stub -->
 <script>
@@ -395,7 +522,7 @@
     // Global control mode — readable by all modules
     window.controlMode = localStorage.getItem('gfloor_control') || 'Haas';
 
-    // Global toggle — header switch calls this, active module listens via onControlModeChange
+    // Global toggle — header switch calls this, modules listen via onControlModeChange
     window.toggleControl = function() {
         window.controlMode = window.controlMode === 'Haas' ? 'Fanuc' : 'Haas';
         document.getElementById('controlToggle').dataset.mode = window.controlMode;
@@ -407,8 +534,8 @@
     document.getElementById('controlToggle').dataset.mode = window.controlMode;
 
     // Tab switching
-    const navItems = document.querySelectorAll('.nav-item[data-tab]');
-    const tabs     = document.querySelectorAll('.tab-content');
+    var navItems = document.querySelectorAll('.nav-item[data-tab]');
+    var tabs     = document.querySelectorAll('.tab-content');
 
     navItems.forEach(function(item) {
         item.addEventListener('click', function(e) {
@@ -429,6 +556,9 @@
 
 <!-- Thread Mill module -->
 <script src="thread-mill.js"></script>
+
+<!-- Serration module -->
+<script src="serration.js"></script>
 
 </body>
 </html>
