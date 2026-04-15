@@ -459,6 +459,58 @@
 
                         <div class="divider"></div>
                         <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="zap"></i> FACE MILL — SPEED &amp; FEED
+                        </div>
+
+                        <!-- Cutter diameter + SFM -->
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="sr-faceCutterDia">Cutter Diameter (in)</label>
+                                <input type="text" id="sr-faceCutterDia" value="6.0" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="sr-faceSfm">Surface Footage (SFM)</label>
+                                <input type="text" id="sr-faceSfm" value="500" data-validate="numeric">
+                                <span class="error-text">Numeric only</span>
+                            </div>
+                        </div>
+
+                        <!-- Calculated RPM + face feed -->
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="sr-faceRpm">Calculated RPM <span style="font-size:0.75rem;color:var(--text-muted);">3.82×SFM÷Dia</span></label>
+                                <input type="text" id="sr-faceRpm" readonly style="opacity:0.6;">
+                            </div>
+                            <div class="form-group">
+                                <label for="sr-faceFeed">Face Mill Feed (IPM)</label>
+                                <input type="text" id="sr-faceFeed" value="25" data-validate="decimal">
+                                <span class="error-text">Valid decimal required</span>
+                            </div>
+                        </div>
+
+                        <!-- Cutter size warnings -->
+                        <div id="sr-warnSmall" style="display:none;background:rgba(255,77,77,0.1);border:1px solid var(--error);border-radius:8px;padding:10px 14px;color:var(--error);font-size:0.82rem;font-weight:600;margin-bottom:8px;">
+                            &#9888; CUTTER TOO SMALL — WILL NOT CLEAN UP RAISED FACE
+                        </div>
+                        <div id="sr-warnLarge" style="display:none;background:rgba(255,160,0,0.1);border:1px solid #ffa000;border-radius:8px;padding:10px 14px;color:#ffa000;font-size:0.82rem;font-weight:600;margin-bottom:8px;">
+                            &#9888; CUTTER OVER 6&quot; — RUN WITH CAUTION
+                        </div>
+
+                        <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
+                            <i data-lucide="circle"></i> BALL END MILL — FEED
+                        </div>
+
+                        <!-- Ball endmill feed -->
+                        <div class="form-group">
+                            <label for="sr-ballFeed">Ball End Mill Feed (IPM)</label>
+                            <input type="text" id="sr-ballFeed" value="80" data-validate="decimal">
+                            <span class="error-text">Valid decimal required</span>
+                        </div>
+
+                        <div class="divider"></div>
+                        <div class="card-header" style="margin: -8px -20px; padding: 12px 20px; font-size:0.85rem;">
                             <i data-lucide="layers"></i> PASS DEPTH
                         </div>
 

@@ -1,31 +1,46 @@
 // ============================================================
-// G-FLOOR — SERRATION ENGINE v1
-// Face + Serrate + Profile on raised face (6" cutter)
+// G-FLOOR — SERRATION ENGINE v2
+// Face + Serrate + Profile on raised face
+// Variable cutter diameter with SFM-based RPM calculation
 // Verified math against macro + CAD/CAM + hand-written examples
 // ============================================================
 
 // ── CONSTANTS ───────────────────────────────────────────────
-const SR_FACE_CUTTER_DIA  = 6.0;      // hard-coded for v1
-const SR_PASS_DEPTH       = 0.025;    // depth per roughing pass
-const SR_SERRATION_STEP   = 0.050;    // radial stepover (full step = two half-arcs)
-const SR_FINAL_PROFILE_Z  = -0.24;    // final profile depth
-const SR_FINAL_FACE_Z     = 0.0;      // final face depth
-const SR_SERRATION_Z      = -0.007;   // starting Z for ball endmill
-const SR_HAAS_FACE_TOOL   = 16;
-const SR_HAAS_BALL_TOOL   = 2;
-const SR_FANUC_FACE_TOOL  = 33;
-const SR_FANUC_BALL_TOOL  = 51;
+const SR_PASS_DEPTH         = 0.025;   // depth per roughing pass
+const SR_SERRATION_STEP     = 0.050;   // radial stepover (full step = two half-arcs)
+const SR_FINAL_PROFILE_Z    = -0.24;   // final profile depth
+const SR_FINAL_FACE_Z       = 0.0;     // final face depth
+const SR_SERRATION_Z        = -0.007;  // starting Z for ball endmill
+const SR_HAAS_FACE_TOOL     = 16;
+const SR_HAAS_BALL_TOOL     = 2;
+const SR_FANUC_FACE_TOOL    = 33;
+const SR_FANUC_BALL_TOOL    = 51;
+const SR_HAAS_CUTTER_DIA    = 4.0;     // default — not persisted
+const SR_FANUC_CUTTER_DIA   = 6.0;     // default — not persisted
+const SR_DEFAULT_SFM        = 500;     // default — not persisted
+const SR_HAAS_FACE_FEED     = 20;      // default IPM — not persisted
+const SR_FANUC_FACE_FEED    = 25;      // default IPM — not persisted
+const SR_HAAS_BALL_FEED     = 30;      // default IPM — not persisted
+const SR_FANUC_BALL_FEED    = 80;      // default IPM — not persisted
+const SR_CUTTER_CAUTION_DIA = 6.0;     // warn above this diameter
 
 // ── DOM REFERENCES ──────────────────────────────────────────
-const srProgNum     = document.getElementById('sr-progNum');
-const srIdDia       = document.getElementById('sr-idDia');
-const srOdDia       = document.getElementById('sr-odDia');
-const srNumPasses   = document.getElementById('sr-numPasses');
-const srTotalRemove = document.getElementById('sr-totalRemove');
-const srFaceToolNum = document.getElementById('sr-faceToolNum');
-const srBallToolNum = document.getElementById('sr-ballToolNum');
-const srOutputArea  = document.getElementById('sr-outputArea');
-const srCopyBtn     = document.getElementById('sr-copyBtn');
+const srProgNum       = document.getElementById('sr-progNum');
+const srIdDia         = document.getElementById('sr-idDia');
+const srOdDia         = document.getElementById('sr-odDia');
+const srNumPasses     = document.getElementById('sr-numPasses');
+const srTotalRemove   = document.getElementById('sr-totalRemove');
+const srFaceToolNum   = document.getElementById('sr-faceToolNum');
+const srBallToolNum   = document.getElementById('sr-ballToolNum');
+const srFaceCutterDia = document.getElementById('sr-faceCutterDia');
+const srFaceSfm       = document.getElementById('sr-faceSfm');
+const srFaceRpm       = document.getElementById('sr-faceRpm');
+const srFaceFeed      = document.getElementById('sr-faceFeed');
+const srBallFeed      = document.getElementById('sr-ballFeed');
+const srOutputArea    = document.getElementById('sr-outputArea');
+const srCopyBtn       = document.getElementById('sr-copyBtn');
+const srWarnSmall     = document.getElementById('sr-warnSmall');
+const srWarnLarge     = document.getElementById('sr-warnLarge');
 
 // ── HELPERS ─────────────────────────────────────────────────
 function srFmt(num, dec) {
@@ -56,9 +71,29 @@ function srValidate(el) {
     return valid;
 }
 
+// ── RPM CALCULATOR ──────────────────────────────────────────
+// Same formula as bolt circle: floor((SFM × 3.82) / dia)
+// Fanuc hard cap 2500
+function srCalcRpm(sfm, dia, isFanuc) {
+    if (!dia || dia <= 0) return 0;
+    var rpm = Math.floor((sfm * 3.82) / dia);
+    if (isFanuc && rpm > 2500) rpm = 2500;
+    return rpm;
+}
+
+function srUpdateRpmDisplay() {
+    var sfm = parseFloat(srFaceSfm.value);
+    var dia = parseFloat(srFaceCutterDia.value);
+    var isFanuc = window.controlMode !== 'Haas';
+    if (!isNaN(sfm) && !isNaN(dia) && dia > 0) {
+        srFaceRpm.value = srCalcRpm(sfm, dia, isFanuc);
+    } else {
+        srFaceRpm.value = '';
+    }
+}
+
 // ── PASS COUNT LOGIC ────────────────────────────────────────
 // Total Remove drives pass count when filled; spinner is the fallback.
-// Both feed each other: editing Total Remove updates the spinner display.
 function srCalcPassesFromRemoval(totalRemove) {
     if (!totalRemove || isNaN(totalRemove) || totalRemove <= 0) return null;
     return Math.ceil(totalRemove / SR_PASS_DEPTH);
@@ -80,7 +115,6 @@ function srOnTotalRemoveInput() {
 }
 
 function srOnPassesInput() {
-    // If user edits passes directly, clear total remove control
     srTotalRemove.value = '';
     srNumPasses.readOnly = false;
     srNumPasses.style.opacity = '';
@@ -89,6 +123,8 @@ function srOnPassesInput() {
 }
 
 // ── LOCALSTORAGE ────────────────────────────────────────────
+// Cutter dia, SFM, face feed, ball feed — NOT persisted (reset to machine defaults)
+// Tool numbers, prog num, ID/OD, passes — persisted as before
 function srSaveInputs() {
     localStorage.setItem('gfloor_sr_progNum',     srProgNum.value);
     localStorage.setItem('gfloor_sr_idDia',       srIdDia.value);
@@ -109,17 +145,26 @@ function srLoadInputs() {
     srFaceToolNum.value = localStorage.getItem('gfloor_sr_faceTool')    || (isHaas ? SR_HAAS_FACE_TOOL : SR_FANUC_FACE_TOOL);
     srBallToolNum.value = localStorage.getItem('gfloor_sr_ballTool')    || (isHaas ? SR_HAAS_BALL_TOOL  : SR_FANUC_BALL_TOOL);
 
+    // Non-persisted fields — always load from machine defaults
+    srFaceCutterDia.value = isHaas ? SR_HAAS_CUTTER_DIA : SR_FANUC_CUTTER_DIA;
+    srFaceSfm.value       = SR_DEFAULT_SFM;
+    srFaceFeed.value      = isHaas ? SR_HAAS_FACE_FEED  : SR_FANUC_FACE_FEED;
+    srBallFeed.value      = isHaas ? SR_HAAS_BALL_FEED  : SR_FANUC_BALL_FEED;
+
     // Restore locked-spinner state if total remove was set
     var tr = parseFloat(srTotalRemove.value);
     if (!isNaN(tr) && tr > 0) {
         srNumPasses.readOnly = true;
         srNumPasses.style.opacity = '0.6';
     }
+
+    srUpdateRpmDisplay();
 }
 
 // ── MAIN GENERATOR ──────────────────────────────────────────
 function srGenerate() {
-    var inputs = [srProgNum, srIdDia, srOdDia, srNumPasses, srFaceToolNum, srBallToolNum];
+    var inputs = [srProgNum, srIdDia, srOdDia, srNumPasses, srFaceToolNum, srBallToolNum,
+                  srFaceCutterDia, srFaceSfm, srFaceFeed, srBallFeed];
     var ok = true;
     inputs.forEach(function(el) { if (!srValidate(el)) ok = false; });
 
@@ -128,22 +173,37 @@ function srGenerate() {
         return;
     }
 
-    var isHaas    = window.controlMode === 'Haas';
-    var isFanuc   = !isHaas;
-    var progNum   = srFmtProg(srProgNum.value);
-    var idDia     = parseFloat(srIdDia.value);
-    var odDia     = parseFloat(srOdDia.value);
-    var numPasses = Math.max(1, parseInt(srNumPasses.value, 10) || 1);
-    var faceTool  = parseInt(srFaceToolNum.value, 10);
-    var ballTool  = parseInt(srBallToolNum.value, 10);
-    var clr       = isFanuc ? 'Z10.' : 'Z1.';
-    var clrNum    = isFanuc ? 10.0 : 1.0;
+    var isHaas      = window.controlMode === 'Haas';
+    var isFanuc     = !isHaas;
+    var progNum     = srFmtProg(srProgNum.value);
+    var idDia       = parseFloat(srIdDia.value);
+    var odDia       = parseFloat(srOdDia.value);
+    var numPasses   = Math.max(1, parseInt(srNumPasses.value, 10) || 1);
+    var faceTool    = parseInt(srFaceToolNum.value, 10);
+    var ballTool    = parseInt(srBallToolNum.value, 10);
+    var cutterDia   = parseFloat(srFaceCutterDia.value);
+    var sfm         = parseFloat(srFaceSfm.value);
+    var faceFeed    = parseFloat(srFaceFeed.value);
+    var ballFeedVal = parseFloat(srBallFeed.value);
+    var clr         = isFanuc ? 'Z10.' : 'Z1.';
+    var clrNum      = isFanuc ? 10.0 : 1.0;
 
     if (isNaN(faceTool)) faceTool = isHaas ? SR_HAAS_FACE_TOOL : SR_FANUC_FACE_TOOL;
     if (isNaN(ballTool)) ballTool = isHaas ? SR_HAAS_BALL_TOOL  : SR_FANUC_BALL_TOOL;
 
+    // ── RPM ────────────────────────────────────────────────
+    var faceRpm = srCalcRpm(sfm, cutterDia, isFanuc);
+    srUpdateRpmDisplay();
+
+    // ── CUTTER SIZE WARNINGS ───────────────────────────────
+    // Warn if cutter is smaller than the raised face width (won't clean up in one pass)
+    var raisedFaceWidth = srRound((odDia - idDia) / 2, 4);
+    srWarnSmall.style.display = (cutterDia < raisedFaceWidth) ? '' : 'none';
+    // Warn if cutter exceeds 6" — run with caution
+    srWarnLarge.style.display = (cutterDia > SR_CUTTER_CAUTION_DIA) ? '' : 'none';
+
     // ── VERIFIED GEOMETRY ──────────────────────────────────
-    // faceArcR: cutter center travels average of ID/2 and OD/2
+    // faceArcR: cutter center travels midpoint of raised face
     //   = (OD + ID) / 4
     // faceArcI: half of faceArcR (midpoint of the half-arc chord)
     var faceArcR = srRound((odDia + idDia) / 4, 4);
@@ -155,7 +215,7 @@ function srGenerate() {
 
     // profileR: cutter center radius for OD profile
     //   = (OD + cutter diameter) / 2
-    var profileR = srRound((odDia + SR_FACE_CUTTER_DIA) / 2, 4);
+    var profileR = srRound((odDia + cutterDia) / 2, 4);
 
     // profileStandoff: safe X approach distance
     //   = profileR + 7  (gives 3.5" swing radius for arc-in move)
@@ -163,6 +223,11 @@ function srGenerate() {
     // profile arc-in I value is always half of the 7" standoff offset
     var profileArcI = 3.5;
 
+    var cutterLabel = srFmt(cutterDia, 0).replace('.0', '') + '"';
+    // Handle non-integer cutter sizes cleanly in the comment
+    var cutterLabelStr = cutterDia % 1 === 0
+        ? cutterDia.toFixed(0) + '"'
+        : cutterDia.toFixed(1) + '"';
     var sizeLabel = idDia.toFixed(3) + '-' + odDia.toFixed(3) + ' SERRATION';
 
     // ── BUILDER UTILITIES ───────────────────────────────────
@@ -195,8 +260,7 @@ function srGenerate() {
     push(progNum);
     push('(' + sizeLabel + ')');
     semi();
-    blank();
-    push('(T' + faceTool.toString().padStart(2, '0') + ' - ' + SR_FACE_CUTTER_DIA + '" FACE MILL)');
+    push('(T' + faceTool.toString().padStart(2, '0') + ' - ' + cutterLabelStr + ' FACE MILL)');
     push('(T' + ballTool.toString().padStart(2, '0') + ' - 1/8 CARBIDE BALL)');
     semi();
     blank();
@@ -208,7 +272,7 @@ function srGenerate() {
     push('(FACE MILL)');
     if (isFanuc) {
         push(nextStep() + ' (STEP) T' + faceTool + ' M06');
-        push('G00 G90 G54 S318 M03');
+        push('G00 G90 G54 S' + faceRpm + ' M03');
         push('X0.0001 Y-0.001 B0.');
         push('G43 H' + faceTool + ' ' + clr + ' T' + ballTool);
         push('M08');
@@ -217,7 +281,7 @@ function srGenerate() {
         push(clr);
     } else {
         push('N10 T' + faceTool.toString().padStart(2, '0') + ' M06');
-        push('G00 G90 G54 S318 M03');
+        push('G00 G90 G54 S' + faceRpm + ' M03');
         push('G43 H' + faceTool.toString().padStart(2, '0') + ' T' + ballTool.toString().padStart(2, '0') + ' X0. Y0.');
         push(clr);
         push('M08');
@@ -226,11 +290,10 @@ function srGenerate() {
 
     for (var p = 1; p <= numPasses; p++) {
         var fz = passZ(p, SR_FINAL_FACE_Z);
-        // Rapid to just above this pass depth, then feed in
-        var fzRapid = srRound(fz + (numPasses > 1 && p > 1 ? 0.1 : 0.1), 4);
+        var fzRapid = srRound(fz + 0.1, 4);
         push('Z' + srFmt(fzRapid));
-        push('G01 Z' + srFmt(fz) + ' F12.5 S318');
-        push('Y0. F25.');
+        push('G01 Z' + srFmt(fz) + ' F12.5 S' + faceRpm);
+        push('Y0. F' + srFmt(faceFeed, 1));
         // Four half-arcs: out-left, half-circle-right, half-circle-left, back-home
         push('G03 X-' + srFmt(faceArcR) + ' Y0. I-' + srFmt(faceArcI) + ' J0.');
         push('X' + srFmt(faceArcR) + ' Y0. I' + srFmt(faceArcR) + ' J0.');
@@ -241,7 +304,6 @@ function srGenerate() {
         if (isFanuc) push('W0.0');
         push(clr);
         if (p < numPasses) {
-            // Reposition for next pass
             push('G00 X0.0001 Y-0.001');
             if (isFanuc) push('W0.0');
         }
@@ -264,7 +326,7 @@ function srGenerate() {
     push('(SERRATION - 1/8 CARBIDE BALL)');
     if (isFanuc) {
         push(nextStep() + ' (STEP) T' + ballTool + ' M06');
-        push('G00 G90 G54 S0 M03');
+        push('G00 G90 G54 M184');
         push('X-' + srFmt(serrInner) + ' Y0. B0.');
         push('G43 H' + ballTool + ' ' + clr + ' T' + faceTool);
         push('M08');
@@ -288,17 +350,14 @@ function srGenerate() {
 
     // Spiral: starts at serrInner (on negative X side), steps outward
     // Each iteration = two G02 half-arcs = one full 0.05" radial step
-    // Arc 1: moves +0.025" (toward positive X), midpoint I = currentR + 0.0125
-    // Arc 2: moves -0.025" landing on negative side 0.05" further out,
-    //         midpoint I = -(currentR + 0.0375)
     var currentR = serrInner;
     while (currentR < serrOuter - 0.0001) {
         var arc1X  = srRound( currentR + 0.025,  4);
         var arc1I  = srRound( currentR + 0.0125, 4);
         var arc2X  = srRound(-(currentR + 0.050), 4);
         var arc2I  = srRound(-(currentR + 0.0375), 4);
-        push('G02 X' + srFmt(arc1X) + ' Y0. I' + srFmt(arc1I) + ' J0. F80.');
-        push('G02 X' + srFmt(arc2X) + ' Y0. I' + srFmt(arc2I) + ' J0. F80.');
+        push('G02 X' + srFmt(arc1X) + ' Y0. I' + srFmt(arc1I) + ' J0. F' + srFmt(ballFeedVal, 1));
+        push('G02 X' + srFmt(arc2X) + ' Y0. I' + srFmt(arc2I) + ' J0. F' + srFmt(ballFeedVal, 1));
         currentR = srRound(currentR + SR_SERRATION_STEP, 4);
     }
 
@@ -320,13 +379,13 @@ function srGenerate() {
     // ════════════════════════════════════════════════════════
     // OPERATION 3 — OD PROFILE (face mill, cutter comp G41)
     // Arc-in from standoff, two CW half-circles, arc-out
-    // Verified against 33.75 OD real-world example
+    // profileR = (OD + cutterDia) / 2 — verified against 33.75 OD real-world example
     // ════════════════════════════════════════════════════════
     hdr();
-    push('(OD PROFILE - ' + SR_FACE_CUTTER_DIA + '" FACE MILL)');
+    push('(OD PROFILE - ' + cutterLabelStr + ' FACE MILL)');
     if (isFanuc) {
         push(nextStep() + ' (STEP) T' + faceTool + ' M06');
-        push('G00 G90 G54 S318 M03');
+        push('G00 G90 G54 S' + faceRpm + ' M03');
         push('X-' + srFmt(profileStandoff) + ' Y0.001 B0.');
         push('G43 H' + faceTool + ' ' + clr);
         push('M08');
@@ -335,7 +394,7 @@ function srGenerate() {
         push(clr);
     } else {
         push('N30 T' + faceTool.toString().padStart(2, '0') + ' M06');
-        push('G00 G90 G54 S318 M03');
+        push('G00 G90 G54 S' + faceRpm + ' M03');
         push('G43 H' + faceTool.toString().padStart(2, '0') + ' T' + ballTool.toString().padStart(2, '0') + ' X0. Y0.');
         push(clr);
         push('M08');
@@ -348,8 +407,8 @@ function srGenerate() {
         push('Z' + srFmt(Math.min(pzRapid, clrNum)));
         push('Z' + srFmt(pzRapid));
         push('G01 Z' + srFmt(pz) + ' F12.5');
-        push('G41 D' + faceTool.toString().padStart(2, '0') + ' Y0. F25.');
-        // Arc in: CCW from standoff to profileR (swing = profileArcI radius)
+        push('G41 D' + faceTool.toString().padStart(2, '0') + ' Y0. F' + srFmt(faceFeed, 1));
+        // Arc in: CCW from standoff to profileR
         push('G03 X-' + srFmt(profileR) + ' Y0. I' + srFmt(profileArcI) + ' J0.');
         // Two CW half-circles covering the full OD
         push('G02 X' + srFmt(profileR) + ' Y0. I' + srFmt(profileR) + ' J0.');
@@ -406,9 +465,11 @@ function srDownloadCode() {
 }
 
 // ── EVENT WIRING ────────────────────────────────────────────
-[srProgNum, srIdDia, srOdDia, srFaceToolNum, srBallToolNum].forEach(function(el) {
+[srProgNum, srIdDia, srOdDia, srFaceToolNum, srBallToolNum,
+ srFaceCutterDia, srFaceSfm, srFaceFeed, srBallFeed].forEach(function(el) {
     el.addEventListener('input', function() {
         srSaveInputs();
+        srUpdateRpmDisplay();
         srGenerate();
     });
 });
@@ -422,11 +483,17 @@ var _srPrevOnControlModeChange = (typeof onControlModeChange === 'function') ? o
 window.onControlModeChange = function() {
     if (_srPrevOnControlModeChange) _srPrevOnControlModeChange();
     var isHaas = window.controlMode === 'Haas';
-    // Only reset tool numbers if they haven't been customized
+    // Tool numbers — only reset if not customized
     var savedFace = localStorage.getItem('gfloor_sr_faceTool');
     var savedBall = localStorage.getItem('gfloor_sr_ballTool');
     srFaceToolNum.value = savedFace || (isHaas ? SR_HAAS_FACE_TOOL : SR_FANUC_FACE_TOOL);
     srBallToolNum.value = savedBall || (isHaas ? SR_HAAS_BALL_TOOL  : SR_FANUC_BALL_TOOL);
+    // Non-persisted fields — always reset to machine defaults on toggle
+    srFaceCutterDia.value = isHaas ? SR_HAAS_CUTTER_DIA : SR_FANUC_CUTTER_DIA;
+    srFaceSfm.value       = SR_DEFAULT_SFM;
+    srFaceFeed.value      = isHaas ? SR_HAAS_FACE_FEED  : SR_FANUC_FACE_FEED;
+    srBallFeed.value      = isHaas ? SR_HAAS_BALL_FEED  : SR_FANUC_BALL_FEED;
+    srUpdateRpmDisplay();
     srGenerate();
 };
 
